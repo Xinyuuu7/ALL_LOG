@@ -1,5 +1,6 @@
 package Xinyuiii;
 
+import Xinyuiii.Bastion.BastionFilter;
 import Xinyuiii.RuinedPortal.RuinedPortalFilter;
 import Xinyuiii.Utils.FastRand;
 import com.seedfinding.mccore.rand.ChunkRand;
@@ -33,8 +34,9 @@ public class ALL_LOG {
     private final List<String> ALL_LOG = Arrays.asList("oak_log", "spruce_log", "birch_log", "jungle_log", "acacia_log",
             "dark_oak_log", "mangrove_log", "cherry_log", "pale_oak_log", "crimson_stem", "warped_stem", "poplar_log");
 
-    private final MCVersion version = MCVersion.v1_21;
+    private final MCVersion version = MCVersion.v1_21; // version here should be 26_3
     private final RuinedPortalFilter portalFilter = new RuinedPortalFilter();
+    private final BastionFilter bastionFilter = new BastionFilter();
 
     private final long seedMin;
     private final long seedMax;
@@ -139,6 +141,7 @@ public class ALL_LOG {
         if (bx > 2 || bz > 2) return;
         rand.setCarverSeed(structureSeed, bx, bz, version);
         if (rand.nextInt(5) < 2) return;
+        if (rand.nextInt(4) == 2) return; // we don't want to get a treasure
 
         // check ruined_portal's position
         frand.setSeed(structureSeed + 34222645L);
@@ -156,6 +159,9 @@ public class ALL_LOG {
         // check worldSeed
         for (Long worldSeed : WorldSeed.getSisterSeeds(structureSeed).asStream().boxed()
                 .limit(128).toList()) {
+            // check bastion loot
+            if (!bastionFilter.checkLoot(worldSeed, new CPos(bx, bz))) continue;
+
             // load cubiomes
             Cubiomes.applySeed(generator, Cubiomes.DIM_OVERWORLD(), worldSeed);
             int biome = Cubiomes.getBiomeAt(generator, 4, rp.getX() << 2, 80, rp.getZ() << 2);
